@@ -10,6 +10,53 @@ FactVerifier is a multiagent AI fact verification platform. Users paste articles
 
 The backend uses a modular multiagent pipeline written in Python. A single-page Streamlit application wraps the pipeline and provides a three-tab interface. The Endee vector database stores and retrieves embeddings. The embedding engine is fastembed, which runs the BAAI/bge-small-en-v1.5 model via ONNX Runtime without any PyTorch dependency. Gemini is called via its standard HTTP REST API.
 
+```mermaid
+graph TD
+    %% Define Styles
+    classDef ui fill:#4CAF50,stroke:#fff,stroke-width:2px,color:#fff
+    classDef agent fill:#2196F3,stroke:#fff,stroke-width:2px,color:#fff
+    classDef engine fill:#FF9800,stroke:#fff,stroke-width:2px,color:#fff
+    classDef db fill:#9C27B0,stroke:#fff,stroke-width:2px,color:#fff
+    classDef external fill:#F44336,stroke:#fff,stroke-width:2px,color:#fff
+
+    UI[Streamlit Web UI]:::ui
+
+    subgraph Agents
+        IA[Ingestion Agent]:::agent
+        SA[Search Agent]:::agent
+        VA[Verification Agent]:::agent
+        RA[Recommendation Agent]:::agent
+    end
+
+    subgraph Engines
+        Embed[FastEmbed ONNX]:::engine
+        Endee[(Endee Vector DB)]:::db
+    end
+
+    Gemini[Gemini API]:::external
+
+    %% Ingestion
+    UI -- "Source Text" --> IA
+    IA -- "Embed" --> Embed
+    IA -- "Vector + JSON" --> Endee
+
+    %% Search & Verify
+    UI -- "Claim" --> SA
+    SA -- "Embed Query" --> Embed
+    SA -- "Vector Search" --> Endee
+    Endee -- "Top Matches" --> SA
+    SA -- "Context" --> VA
+    VA -- "Strict Prompt" --> Gemini
+    Gemini -- "Authenticity Verdict" --> VA
+    VA -- "Structured Report" --> UI
+
+    %% Recommendations
+    UI -- "History" --> RA
+    RA -. "Background Search" .-> SA
+    SA -. "Matches" .-> RA
+    RA -- "Ranked Facts" --> UI
+```
+
 ---
 
 ## AgentsAndRoles
@@ -203,21 +250,27 @@ The application will open at http://localhost:8501.
 
 ---
 
-## RunWithDocker
+## RunWithDockerCompose
 
-This runs only the Streamlit application in Docker. The Endee database must still be running separately as shown above.
+The most seamless way to run both the Endee database and the FactVerifier interface together is using Docker Compose.
 
-Step 1: Build the image
+Step 1: Configure environment
 ```
-docker build -t factverifier .
+copy .env.example .env
 ```
+Open the .env file and paste your Gemini API key.
 
-Step 2: Run the container
+Step 2: Start the stack
 ```
-docker run -p 8501:8501 --env-file .env factverifier
+docker compose up --build -d
 ```
 
 Step 3: Access the app at http://localhost:8501.
+
+To stop the services, run:
+```
+docker compose down
+```
 
 ---
 
