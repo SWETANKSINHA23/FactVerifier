@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  endee:
+    image: endeeio/endee-server:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./endee-data:/data
+    ulimits:
+      nofile:
+        soft: 100000
+        hard: 100000
+    restart: unless-stopped
+
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      - ENDEE_API_URL=http://endee:8080/api/v1
+    depends_on:
+      - endee
+    restart: unless-stopped
+
+
