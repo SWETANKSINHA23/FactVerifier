@@ -1,15 +1,26 @@
 import os
-import google.generativeai as genai
+import requests
 from typing import List, Dict, Any
+
+GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1/models"
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 class VerificationAgent:
     def __init__(self):
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY", ""))
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.api_key = os.getenv("GEMINI_API_KEY", "")
+        self.model = GEMINI_MODEL
+
+    def _call_gemini(self, prompt: str) -> str:
+        url = f"{GEMINI_ENDPOINT}/{self.model}:generateContent?key={self.api_key}"
+        body = {"contents": [{"parts": [{"text": prompt}]}]}
+        resp = requests.post(url, json=body)
+        if not resp.ok:
+            raise Exception(f"{resp.status_code} {resp.text}")
+        data = resp.json()
+        return data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
 
     def build_prompt(self, query: str, context_cards: List[Dict[str, Any]]) -> str:
         context_str = "\n\n".join([f"CARD {i+1}: {card.get('payload', {}).get('text', '')}" for i, card in enumerate(context_cards)])
-        
         return f"""
 You are a strict fact-checking assistant. Your ONLY job is to verify the query based on the provided KNOWLEDGE CARDS.
 
@@ -45,10 +56,8 @@ CitedKnowledgeCards:
     def verify(self, query: str, context_cards: List[Dict[str, Any]]) -> str:
         if not context_cards:
             return "Decision:\nInsufficientEvidence\n\nConfidence:\nLow\n\nEvidenceSummary:\nNo context cards found.\n\nReasoning:\nCannot verify without knowledge base context.\n\nCitedKnowledgeCards:\nNone"
-            
         prompt = self.build_prompt(query, context_cards)
         try:
-            response = self.model.generate_content(prompt)
-            return response.text
+            return self._call_gemini(prompt)
         except Exception as e:
             return f"Decision:\nInsufficientEvidence\n\nConfidence:\nLow\n\nEvidenceSummary:\nError connecting to Verification LLM.\n\nReasoning:\n{str(e)}\n\nCitedKnowledgeCards:\nNone"
