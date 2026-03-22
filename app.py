@@ -1,7 +1,7 @@
 import streamlit as st
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 from agents.ingestion_agent import IngestionAgent
 from agents.search_agent import SearchAgent
@@ -12,8 +12,6 @@ st.set_page_config(page_title="FactVerifier API", layout="wide")
 
 if "query_history" not in st.session_state:
     st.session_state.query_history = []
-
-@st.cache_resource
 def get_agents():
     return {
         "ingest": IngestionAgent(),
