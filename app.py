@@ -34,9 +34,9 @@ with tab1:
             with st.spinner("Ingesting and embedding..."):
                 success = agents["ingest"].ingest_knowledge(text_input)
                 if success:
-                    st.success("Successfully ingested into Endee database.")
+                    st.success("✅ Successfully ingested into knowledge base.")
                 else:
-                    st.error("Failed to ingest. Make sure Endee is running on localhost:8080.")
+                    st.error("❌ Failed to ingest. Please try again.")
         else:
             st.warning("Please enter text before ingesting.")
 
