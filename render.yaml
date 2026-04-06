@@ -13,7 +13,7 @@ services:
         value: gemini-2.5-flash
 
   # 2. The Endee Database (Internal Service)
-  - type: pservice
+  - type: pserv
     name: endee-server
     runtime: image
     imageRepo: endeeio/endee-server:latest
