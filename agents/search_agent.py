@@ -6,10 +6,15 @@ from typing import List, Dict, Any
 class SearchAgent:
     def __init__(self):
         self.client = EndeeClient()
-        self.model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+        self._model = None  # Lazy-loaded on first use
+
+    def _get_model(self):
+        if self._model is None:
+            self._model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+        return self._model
 
     def search(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
-        vector = list(self.model.embed([query]))[0].tolist()
+        vector = list(self._get_model().embed([query]))[0].tolist()
         try:
             results = self.client.search(vector, top_k)
             return results
