@@ -12,13 +12,10 @@ services:
       - key: GEMINI_MODEL
         value: gemini-2.5-flash
 
-  # 2. The Endee Database (Internal Service)
-  - type: pserv
+  # 2. The Endee Database (Modified for Free Tier)
+  - type: web
     name: endee-server
     runtime: image
     imageRepo: endeeio/endee-server:latest
     plan: free
-    disk:
-      name: endee-data
-      mountPath: /data
-      sizeGB: 1
+    # Note: Disk was removed because Render Free Plan does not support persistence.
