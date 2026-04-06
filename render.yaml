@@ -1,0 +1,24 @@
+services:
+  # 1. The FactVerifier Streamlit App
+  - type: web
+    name: fact-verifier-app
+    runtime: docker
+    plan: free
+    envVars:
+      - key: ENDEE_API_URL
+        value: http://endee-server:8080/api/v1
+      - key: GEMINI_API_KEY
+        sync: false # You will enter this manually in the Render Dashboard
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+
+  # 2. The Endee Database (Internal Service)
+  - type: pservice
+    name: endee-server
+    runtime: image
+    imageRepo: endeeio/endee-server:latest
+    plan: free
+    disk:
+      name: endee-data
+      mountPath: /data
+      sizeGB: 1
