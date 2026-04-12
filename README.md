@@ -1,5 +1,7 @@
 # FactVerifierSystem
 
+🚀 Live Demo: https://fact-verifier-app.onrender.com
+
 ## ProjectOverview
 
 FactVerifier is a multiagent AI fact verification platform. Users paste articles, social media posts, or any text into a knowledge base. The system then evaluates user claims by searching that knowledge base using vector similarity and uses the Gemini LLM to deliver a structured verdict: Authentic, Fake, or InsufficientEvidence.
